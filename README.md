@@ -16,3 +16,6 @@ python checker.py
 
 ### As a chron job
 TODO this is how I want it to run
+
+## TODO
+- make email reports optional (e.g. via command line option)
