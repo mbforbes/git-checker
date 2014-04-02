@@ -6,7 +6,7 @@ See the following for python email code:
 http://docs.python.org/2/library/email-examples.html
 '''
 
-__author__ = 'max'
+__author__ = 'mbforbes'
 
 
 #
