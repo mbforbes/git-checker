@@ -35,11 +35,11 @@ CMDLINE_REPORT = ['--email', '--print', '--both']
 #
 
         
-def main(checkdir='~', report='--both'):
+def main(checkdir='~', report='--print'):
     '''Check git directories for uncommited files and unpushed commits. Then
     send an email report to the user.'''
     # Write checked dir before expanding.
-    msgstr = '- Checked at and below: ' + check_dir + '\n'
+    msgstr = '- Checked at and below: ' + checkdir + '\n'
     check_dir = os.path.expanduser(checkdir)
 
     # Get the void.
@@ -63,7 +63,7 @@ def main(checkdir='~', report='--both'):
     for r in res.splitlines():
         if r.endswith('.git'):
             gitdirs += [r.split('.git')[0]]
-    msgstr += '- Found ' + len(gitdir) + ' git repositories.\n'
+    msgstr += '- Found ' + str(len(gitdirs)) + ' git repositories.\n'
 
     # Now run git status in each
     dirtydirs = []
@@ -86,19 +86,19 @@ def main(checkdir='~', report='--both'):
         return
 
     # Make a space in the message body
-    msgstr += '\n\n'
+    msgstr += '\n'
 
     # append any dirty directories
     ndirtystr = str(len(dirtydirs))
     nunpushedstr = str(len(unpusheddirs))
     if len(dirtydirs) > 0:
         msgstr += 'The following ' + ndirtystr + ' directories have dirty ' + \
-        ' WDs:\n' + '\n'.join(['\t - ' + x for x in dirtydirs])
+        'WDs:\n' + '\n'.join(['\t - ' + x for x in dirtydirs])
     if len(dirtydirs) > 0 and len(unpusheddirs) > 0:
         msgstr += '\n'
     if len(unpusheddirs) > 0:
         msgstr += 'The following ' + nunpushedstr + 'directories need to ' + \
-        ' be pushed:\n' + '\n'.join(['\t - ' + x for x in unpusheddirs])
+        'be pushed:\n' + '\n'.join(['\t - ' + x for x in unpusheddirs])
     if len(dirtydirs) == 0 and len(unpusheddirs) == 0:
         # Alternate message if everything good (printed only).
         msgstr += 'All git repositories checked were clean.\n'
@@ -157,15 +157,15 @@ def usage():
     print '                Whitespace sensitive (use quotes), defaults to ~.'
     print
     print '[report_option] is one of:'
-    print '--print         Prints report to console (not printer).'
+    print '--print         Prints report to console (not printer). Default.'
     print '--email         Emails report using sender and recipient files.'
-    print '--both          Default. Print and email.'
+    print '--both          Print and email.'
     print
 
 if __name__ == '__main__':
     # Defaults!
     checkdir = '~'
-    report = '--both'
+    report = '--print'
 
     # At least one option!
     if len(sys.argv) > 1:
