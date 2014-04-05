@@ -8,7 +8,6 @@ http://docs.python.org/2/library/email-examples.html
 
 __author__ = 'mbforbes'
 
-
 #
 # IMPORTS
 #
@@ -24,16 +23,13 @@ from smtplib import SMTP_SSL as SMTP
 #
 # CONSTANTS
 #
+
 CMDLINE_HELP = ['-h', '--help']
 CMDLINE_REPORT = ['--email', '--print', '--both']
-#
-# CLASSES
-#
 
 #
 # FUNCTIONS
 #
-
         
 def main(checkdir='~', report='--print'):
     '''Check git directories for uncommited files and unpushed commits. Then
@@ -112,7 +108,8 @@ def main(checkdir='~', report='--print'):
         print_report(msgstr)
     if (report == '--email' or report == '--both') and \
         (len(dirtydirs) > 0 or len(unpusheddirs) > 0):
-        # For an email replort
+        # For an email report, we only send if something's dirty or unpushed to
+        # avoid spam.
         email_report(msgstr, ndirtystr, nunpushedstr)
 
 def print_report(msgstr):
@@ -194,6 +191,3 @@ if __name__ == '__main__':
 
     # Actually do things!
     main(checkdir, report)
-
-
-
