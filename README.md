@@ -20,5 +20,17 @@ You need to create two additional files before you can run with email repots ena
 0. `recipient` : one line: the email address of who should receive the report
 0. `sender` : two lines: (1) the username, (2) the password of the gmail account for sending the report
 
+Then, just run
+```bash
+python checker.py --email
+```
+
+## Help
+To get a list of all command line options, just run with `-h` or `--help`.
+
+```bash
+python checker.py -h
+```
+
 ## TODO
 - add chron job instructions
