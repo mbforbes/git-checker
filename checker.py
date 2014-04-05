@@ -155,7 +155,7 @@ def usage():
     print 'Usage: python checker.py [option] [report_option]'
     print
     print '[option] is one of:'
-    print ', '.join(CMDLINE_HELP), '        Display this help message and exit.'
+    print ', '.join(CMDLINE_HELP), '     Display this help message and exit.'
     print '</some/path>    Attempt to use the string as a path for checking.'
     print '                Whitespace sensitive (use quotes), defaults to ~.'
     print
