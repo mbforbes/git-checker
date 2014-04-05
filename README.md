@@ -7,8 +7,11 @@ $ python checker.py
 - Found 23 git repositories.
 
 The following 2 directories have dirty WDs:
-         - /Users/max/repos/py_git-checker/
-         - /Users/max/repos/py_beautyplot/
+	 - /Users/max/repos/py_git-checker/
+	 - /Users/max/repos/py_beautyplot/
+
+The following 1 directories need to be pushed:
+	 - /Users/max/repos/py_git-checker/
 $ 
 ```
 
@@ -34,7 +37,7 @@ python checker.py --email
 
 ## Advanced usage
 ### Cron job, emailed reports
-If you already have a crontabs file, add this line to it:
+If you already have a crontabs file, add this line to it:  
 `0 21 * * * python </Path/to/checker.py> --email`
 
 If you don't, run the following command in this repo (the same directory as `checker.py`, and it will set up a `crontab.txt` file in your home directory with a single entry, which runs the git checker daily at 9pm and emails you the result.
