@@ -14,11 +14,10 @@ python checker.py
 ### As a chron job
 TODO this is how I want it to run
 
-### Advanced: Check some other directory, print _and_ email result
+### Advanced: Check specified directory tree, print _and_ email result
 ```bash
-python checker.py /Some/path/to/check --both
+python checker.py /Path/to/check/below --both
 ```
-
 
 ## Setup for email reports
 You need to create two additional files before you can run with email repots enabled.
