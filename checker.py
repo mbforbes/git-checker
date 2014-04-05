@@ -38,9 +38,9 @@ CMDLINE_REPORT = ['--email', '--print', '--both']
 def main(checkdir='~', report='--both'):
     '''Check git directories for uncommited files and unpushed commits. Then
     send an email report to the user.'''
-    # Settings.
+    # Write checked dir before expanding.
+    msgstr = '- Checked at and below: ' + check_dir + '\n'
     check_dir = os.path.expanduser(checkdir)
-    print 'Checking', check_dir, '...'
 
     # Get the void.
     dn = open(os.devnull, 'w')
@@ -51,7 +51,7 @@ def main(checkdir='~', report='--both'):
         '-name', # search by name
         '.git'], # the name we want
         stdout=sp.PIPE, # catch output
-    #    stderr=dn # send errors to the void!
+        stderr=dn # send errors to the void!
         ) 
     res, err = p.communicate()
 
@@ -63,6 +63,7 @@ def main(checkdir='~', report='--both'):
     for r in res.splitlines():
         if r.endswith('.git'):
             gitdirs += [r.split('.git')[0]]
+    msgstr += '- Found ' + len(gitdir) + ' git repositories.\n'
 
     # Now run git status in each
     dirtydirs = []
@@ -84,30 +85,38 @@ def main(checkdir='~', report='--both'):
     if len(dirtydirs) == 0 and len(unpusheddirs) == 0:
         return
 
-    # Create the msg body (empty at first)
-    msgstr = ''
+    # Make a space in the message body
+    msgstr += '\n\n'
 
     # append any dirty directories
+    ndirtystr = str(len(dirtydirs))
+    nunpushedstr = str(len(unpusheddirs))
     if len(dirtydirs) > 0:
-        msgstr += 'The following directories have dirty WDs:\n' + \
-            '\n'.join(['\t - ' + x for x in dirtydirs])
+        msgstr += 'The following ' + ndirtystr + ' directories have dirty ' + \
+        ' WDs:\n' + '\n'.join(['\t - ' + x for x in dirtydirs])
     if len(dirtydirs) > 0 and len(unpusheddirs) > 0:
         msgstr += '\n'
     if len(unpusheddirs) > 0:
-        msgstr += 'The following directories need to be pushed:\n' + \
-        '\n'.join(['\t - ' + x for x in unpusheddirs])
+        msgstr += 'The following ' + nunpushedstr + 'directories need to ' + \
+        ' be pushed:\n' + '\n'.join(['\t - ' + x for x in unpusheddirs])
+    if len(dirtydirs) == 0 and len(unpusheddirs) == 0:
+        # Alternate message if everything good (printed only).
+        msgstr += 'All git repositories checked were clean.\n'
 
     # It's not useful unless you tell someone about it!
     if report == '--print' or report == '--both':
+        # For a printed report, we spit out even if nothing dirty.
         print_report(msgstr)
-    if report == '--email' or report == '--both':
-        email_report(msgstr)
+    if (report == '--email' or report == '--both') and \
+        (len(dirtydirs) > 0 or len(unpusheddirs) > 0):
+        # For an email replort
+        email_report(msgstr, ndirtystr, nunpushedstr)
 
 def print_report(msgstr):
     '''Print report to console.'''
     print msgstr
 
-def email_report(msgstr):
+def email_report(msgstr, ndirtystr, nunpushedstr):
     '''Send email report.'''
     # Who to send report to.
     with open('recipient') as recipient:
@@ -122,7 +131,8 @@ def email_report(msgstr):
 
     # Set email fields.
     receiver = user_email
-    msg['Subject'] = 'git-checker report'
+    msg['Subject'] = 'git-checker report: ' + ndirtystr + ' dirty, ' + \
+        nunpushedstr + ' unpushed'
     msg['From'] = sender_uname
     msg['To'] = receiver
 

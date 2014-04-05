@@ -19,6 +19,3 @@ TODO this is how I want it to run
 
 ## TODO
 - add chron job instructions
-- make email reports optional (e.g. via command line option)
-- print something when running non-email report and clean
-- change code to accept different directories (and default to some reasonable HOME, not my particular one...)
