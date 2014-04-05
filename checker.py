@@ -24,7 +24,7 @@ from smtplib import SMTP_SSL as SMTP
 #
 # CONSTANTS
 #
-CMDLINE_HELP = ['-h', '--h']
+CMDLINE_HELP = ['-h', '--help']
 CMDLINE_REPORT = ['--email', '--print', '--both']
 #
 # CLASSES
@@ -38,6 +38,10 @@ CMDLINE_REPORT = ['--email', '--print', '--both']
 def main(checkdir='~', report='--print'):
     '''Check git directories for uncommited files and unpushed commits. Then
     send an email report to the user.'''
+    # Save original path (gets messged up and unreachable after changing
+    # directories a bunch and reading files, I guess...)
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
     # Write checked dir before expanding.
     msgstr = '- Checked at and below: ' + checkdir + '\n'
     check_dir = os.path.expanduser(checkdir)
@@ -81,9 +85,8 @@ def main(checkdir='~', report='--print'):
             # Changes unpushed
             unpusheddirs += [gd]
 
-    # If nothing to report, then done!
-    if len(dirtydirs) == 0 and len(unpusheddirs) == 0:
-        return
+    # Get back to original script directory (for emailing).
+    os.chdir(script_dir)
 
     # Make a space in the message body
     msgstr += '\n'
