@@ -95,9 +95,9 @@ def main(checkdir='~', report='--print'):
         msgstr += 'The following ' + ndirtystr + ' directories have dirty ' + \
         'WDs:\n' + '\n'.join(['\t - ' + x for x in dirtydirs])
     if len(dirtydirs) > 0 and len(unpusheddirs) > 0:
-        msgstr += '\n'
+        msgstr += '\n\n'
     if len(unpusheddirs) > 0:
-        msgstr += 'The following ' + nunpushedstr + 'directories need to ' + \
+        msgstr += 'The following ' + nunpushedstr + ' directories need to ' + \
         'be pushed:\n' + '\n'.join(['\t - ' + x for x in unpusheddirs])
     if len(dirtydirs) == 0 and len(unpusheddirs) == 0:
         # Alternate message if everything good (printed only).
