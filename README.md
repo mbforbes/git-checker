@@ -40,7 +40,7 @@ python checker.py --email
 If you already have a crontabs file, add this line to it:  
 `0 21 * * * python </Path/to/checker.py> --email`
 
-If you don't, run the following command in this repo (the same directory as `checker.py`, and it will set up a `crontab.txt` file in your home directory with a single entry, which runs the git checker daily at 9pm and emails you the result.
+If you don't, run the following command in this repo (the same directory as `checker.py`), and it will set up a `crontab.txt` file in your home directory with a single entry, which runs the git checker daily at 9pm and emails you the result.
 ```bash
 echo 0 21 '* * *' python `pwd`/checker.py --email > ~/crontab.txt; crontab ~/crontab.txt
 ```
