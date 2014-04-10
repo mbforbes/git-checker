@@ -58,3 +58,6 @@ To get a list of all command line options, just run with `-h` or `--help`.
 ```bash
 $ python checker.py -h
 ```
+
+## Feature Ideas
+* Add computer info to summary, if running on multiple computers.
