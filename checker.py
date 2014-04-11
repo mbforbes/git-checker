@@ -27,6 +27,9 @@ from smtplib import SMTP_SSL as SMTP
 CMDLINE_HELP = ['-h', '--help']
 CMDLINE_REPORT = ['--email', '--print', '--both']
 
+WDCLEAN_ENDS = ['working directory clean', '(working directory clean)']
+WDAHEAD_STARTS = ['# Your branch is ahead']
+
 #
 # FUNCTIONS
 #
@@ -74,10 +77,10 @@ def main(checkdir='~', report='--print'):
         res, ess = p.communicate()
         # Find what's important.
         lines = res.splitlines()
-        if not lines[-1].endswith('working directory clean'):
+        if not check_clean(lines):
             # WD dirty
             dirtydirs += [gd]
-        if len(lines) >= 2 and lines[1].startswith('# Your branch is ahead'):
+        if check_unpushed(lines):
             # Changes unpushed
             unpusheddirs += [gd]
 
@@ -111,6 +114,25 @@ def main(checkdir='~', report='--print'):
         # For an email report, we only send if something's dirty or unpushed to
         # avoid spam.
         email_report(msgstr, ndirtystr, nunpushedstr)
+
+def check_clean(status_lines):
+    '''Return whether a status string indicates that a working directory is
+    clean'''
+    last_line = status_lines[-1]
+    for clean_end in WDCLEAN_ENDS:
+        if last_line.endswith(clean_end):
+            return True
+    return False
+
+def check_unpushed(status_lines):
+    '''Return whether a status string indicates that a working directory has
+    commits ahead of a remote branch.
+    '''
+    if len(status_lines) >= 2:
+        for ahead_start in WDAHEAD_STARTS:
+            if status_lines[1].startswith(ahead_start):
+                return True
+    return False
 
 def print_report(msgstr):
     '''Print report to console.'''
