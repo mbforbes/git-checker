@@ -58,3 +58,7 @@ To get a list of all command line options, just run with `-h` or `--help`.
 ```bash
 $ python checker.py -h
 ```
+
+## TODO
+* Fix bug running on ubuntu (all are marked dirty)
+* Add computer info to summary, if running on multiple computers.
