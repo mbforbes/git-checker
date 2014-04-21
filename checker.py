@@ -1,9 +1,5 @@
 '''
-Check git directories for uncommited files and unpushed commits. Then
-send an email report to the user.
-
-See the following for python email code:
-http://docs.python.org/2/library/email-examples.html
+Check git directories for uncommited files and unpushed commits.
 '''
 
 __author__ = 'mbforbes'
@@ -13,12 +9,11 @@ __author__ = 'mbforbes'
 #
 
 # builtins
-import subprocess as sp
-import os
-import smtplib
-import sys
 from email.mime.text import MIMEText
+import os
 from smtplib import SMTP_SSL as SMTP
+import subprocess as sp
+import sys
 
 #
 # CONSTANTS
@@ -33,8 +28,7 @@ WDAHEAD_STARTS = ['# Your branch is ahead']
 #
 # FUNCTIONS
 #
-        
-def main(checkdir='~', report='--print'):
+def checker(checkdir='~', report='--print'):
     '''Check git directories for uncommited files and unpushed commits. Then
     send an email report to the user.'''
     # Save original path (gets messged up and unreachable after changing
@@ -184,8 +178,8 @@ def usage():
     print '--both          Print and email.'
     print
 
-if __name__ == '__main__':
-    # Defaults!
+def main():
+    '''Program entry starts here'''
     checkdir = '~'
     report = '--print'
 
@@ -206,10 +200,14 @@ if __name__ == '__main__':
     # At least two options!
     if len(sys.argv) > 2:
         arg2 = sys.argv[2]
-        # There's no reason this should be the path (or help), so check only 
+        # There's no reason this should be the path (or help), so check only
         # report.
         if arg2 in CMDLINE_REPORT:
             report = arg2
 
     # Actually do things!
-    main(checkdir, report)
+    checker(checkdir, report)
+
+# Entry point for command line usage.
+if __name__ == '__main__':
+    main()

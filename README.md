@@ -60,5 +60,4 @@ $ python checker.py -h
 ```
 
 ## TODO
-* Fix bug running on ubuntu (all are marked dirty)
 * Add computer info to summary, if running on multiple computers.
