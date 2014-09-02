@@ -22,8 +22,8 @@ import sys
 CMDLINE_HELP = ['-h', '--help']
 CMDLINE_REPORT = ['--email', '--print', '--both']
 
-WDCLEAN_ENDS = ['working directory clean', '(working directory clean)']
-WDAHEAD_STARTS = ['# Your branch is ahead']
+CLEAN_PHRASES = ['working directory clean']
+AHEAD_PHRASES = ['branch is ahead of']
 
 #
 # FUNCTIONS
@@ -49,7 +49,7 @@ def checker(checkdir='~', report='--print'):
         '.git'], # the name we want
         stdout=sp.PIPE, # catch output
         stderr=dn # send errors to the void!
-        ) 
+        )
     res, err = p.communicate()
 
     # close the void
@@ -113,8 +113,8 @@ def check_clean(status_lines):
     '''Return whether a status string indicates that a working directory is
     clean'''
     last_line = status_lines[-1]
-    for clean_end in WDCLEAN_ENDS:
-        if last_line.endswith(clean_end):
+    for clean_end in CLEAN_PHRASES:
+        if clean_end in last_line:
             return True
     return False
 
@@ -123,8 +123,8 @@ def check_unpushed(status_lines):
     commits ahead of a remote branch.
     '''
     if len(status_lines) >= 2:
-        for ahead_start in WDAHEAD_STARTS:
-            if status_lines[1].startswith(ahead_start):
+        for ahead_start in AHEAD_PHRASES:
+            if ahead_start in status_lines[1]:
                 return True
     return False
 
