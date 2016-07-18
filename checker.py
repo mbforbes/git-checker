@@ -1,8 +1,8 @@
 '''
 Check git directories for uncommited files and unpushed commits.
-'''
 
-__author__ = 'mbforbes'
+Author: mbforbes
+'''
 
 #
 # IMPORTS
@@ -15,6 +15,7 @@ from smtplib import SMTP_SSL as SMTP
 import subprocess as sp
 import sys
 
+
 #
 # CONSTANTS
 #
@@ -25,13 +26,21 @@ CMDLINE_REPORT = ['--email', '--print', '--both']
 CLEAN_PHRASES = ['working directory clean']
 AHEAD_PHRASES = ['branch is ahead of']
 
+
 #
 # FUNCTIONS
 #
 def checker(checkdir='~', report='--print'):
-    '''Check git directories for uncommited files and unpushed commits. Then
-    send an email report to the user.'''
-    # Save original path (gets messged up and unreachable after changing
+    '''
+    Check git directories for uncommited files and unpushed commits. Report
+    status to user either via stdout or email.
+
+    Args:
+        checkdir (str, default '~') Root of directories to check
+        preport (str, default '--print') Whether to print ('--print'), email
+            ('--email'), or do both ('--both')
+    '''
+    # Save original path (gets messed up and unreachable after changing
     # directories a bunch and reading files, I guess...)
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -43,13 +52,14 @@ def checker(checkdir='~', report='--print'):
     dn = open(os.devnull, 'w')
 
     # Check.
-    p = sp.Popen(['find', # command
-        check_dir, # directory to look in (home)
-        '-name', # search by name
-        '.git'], # the name we want
-        stdout=sp.PIPE, # catch output
-        stderr=dn # send errors to the void!
-        )
+    p = sp.Popen([
+        'find',          # command
+        check_dir,       # directory to look in (default: home)
+        '-name',         # search by name
+        '.git'],         # the name we want
+        stdout=sp.PIPE,  # catch output
+        stderr=dn        # send errors to the void!
+    )
     res, err = p.communicate()
 
     # close the void
@@ -81,20 +91,20 @@ def checker(checkdir='~', report='--print'):
     # Get back to original script directory (for emailing).
     os.chdir(script_dir)
 
-    # Make a space in the message body
+    # Make a space in the message body.
     msgstr += '\n'
 
-    # append any dirty directories
+    # Append any dirty directories.
     ndirtystr = str(len(dirtydirs))
     nunpushedstr = str(len(unpusheddirs))
     if len(dirtydirs) > 0:
         msgstr += 'The following ' + ndirtystr + ' directories have dirty ' + \
-        'WDs:\n' + '\n'.join(['\t - ' + x for x in dirtydirs])
+            'WDs:\n' + '\n'.join(['\t - ' + x for x in dirtydirs])
     if len(dirtydirs) > 0 and len(unpusheddirs) > 0:
         msgstr += '\n\n'
     if len(unpusheddirs) > 0:
         msgstr += 'The following ' + nunpushedstr + ' directories need to ' + \
-        'be pushed:\n' + '\n'.join(['\t - ' + x for x in unpusheddirs])
+            'be pushed:\n' + '\n'.join(['\t - ' + x for x in unpusheddirs])
     if len(dirtydirs) == 0 and len(unpusheddirs) == 0:
         # Alternate message if everything good (printed only).
         msgstr += 'All git repositories checked were clean.\n'
@@ -104,23 +114,34 @@ def checker(checkdir='~', report='--print'):
         # For a printed report, we spit out even if nothing dirty.
         print_report(msgstr)
     if (report == '--email' or report == '--both') and \
-        (len(dirtydirs) > 0 or len(unpusheddirs) > 0):
+            (len(dirtydirs) > 0 or len(unpusheddirs) > 0):
         # For an email report, we only send if something's dirty or unpushed to
         # avoid spam.
         email_report(msgstr, ndirtystr, nunpushedstr)
 
+
 def check_clean(status_lines):
-    '''Return whether a status string indicates that a working directory is
-    clean'''
+    '''
+    Returns whether a status string indicates that a working directory is
+    clean.
+
+    Args:
+        status_lines ([str]) Output of `git status`
+    '''
     last_line = status_lines[-1]
     for clean_end in CLEAN_PHRASES:
         if clean_end in last_line:
             return True
     return False
 
+
 def check_unpushed(status_lines):
-    '''Return whether a status string indicates that a working directory has
+    '''
+    Return whether a status string indicates that a working directory has
     commits ahead of a remote branch.
+
+    Args:
+        status_lines ([str]) Output of `git status`
     '''
     if len(status_lines) >= 2:
         for ahead_start in AHEAD_PHRASES:
@@ -128,17 +149,32 @@ def check_unpushed(status_lines):
                 return True
     return False
 
+
 def print_report(msgstr):
-    '''Print report to console.'''
+    '''
+    Print report to console.
+
+    Args:
+        msgstr (str) What to print
+    '''
     print msgstr
 
+
 def email_report(msgstr, ndirtystr, nunpushedstr):
-    '''Send email report.'''
+    '''
+    Send email report to address in the "recipient" file using the userame and
+    password in the "sender" file.
+
+    Args:
+        msgstr (str) The report
+        ndirtystr (str) The number of dirty directories, as a string
+        nunpushedstr (str) The number of unpushed directories, as a string
+    '''
     # Who to send report to.
     with open('recipient') as recipient:
         user_email = recipient.read().strip()
 
-    # Account with which to send the email from
+    # Account from which to send the email.
     with open('sender') as sender:
         sender_uname, sender_psswd = sender.read().strip().split('\n')
 
@@ -160,8 +196,9 @@ def email_report(msgstr, ndirtystr, nunpushedstr):
     finally:
         conn.close()
 
+
 def usage():
-    '''Tell how to use this program.'''
+    '''Tells you how to use this program.'''
     print 'git-checker : Your friendly neighborhood git repository checker.'
     print '              Finds dirty / unpushed repositories and tells you.'
     print
@@ -178,8 +215,9 @@ def usage():
     print '--both          Print and email.'
     print
 
+
 def main():
-    '''Program entry starts here'''
+    '''Program entry starts here.'''
     checkdir = '~'
     report = '--print'
 
@@ -207,6 +245,7 @@ def main():
 
     # Actually do things!
     checker(checkdir, report)
+
 
 # Entry point for command line usage.
 if __name__ == '__main__':
