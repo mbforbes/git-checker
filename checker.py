@@ -26,6 +26,8 @@ CMDLINE_REPORT = ['--email', '--print', '--both']
 CLEAN_PHRASES = ['working directory clean']
 AHEAD_PHRASES = ['branch is ahead of']
 
+BLACKLIST_DIRS = ['venv']
+
 
 #
 # FUNCTIONS
@@ -66,10 +68,22 @@ def checker(checkdir='~', report='--print'):
     dn.close()
 
     # Filter out crap and peel off .git endings.
-    gitdirs = []
+    allgitdirs = []
     for r in res.splitlines():
         if r.endswith('.git'):
-            gitdirs += [r.split('.git')[0]]
+            allgitdirs += [r.split('.git')[0]]
+
+    # ignore blacklist dirs
+    gitdirs = []
+    for d in allgitdirs:
+        # TODO: make OS-agnostic
+        remove = False
+        for piece in d.split('/')[:-1]:
+            if piece in BLACKLIST_DIRS:
+                remove = True
+        if not remove:
+            gitdirs.append(d)
+
     msgstr += '- Found ' + str(len(gitdirs)) + ' git repositories.\n'
 
     # Now run git status in each
