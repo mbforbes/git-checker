@@ -16,7 +16,7 @@ The following 2 directories have dirty WDs:
 
 The following 1 directories need to be pushed:
 	 - /Users/max/repos/py_git-checker/
-$ 
+$
 ```
 
 This is useful if, like me, most of your code lives and is backed up on GitHub,
@@ -53,7 +53,7 @@ $ python checker.py --email
 _The examples below run the git checker daily at 9pm (0 minutes, 21 hours),
 look at and below your home directory (`~`), and email you the result._
 
-If you already have a crontabs file, add this line to it:  
+If you already have a crontabs file, add this line to it:
 `0 21 * * * python </Path/to/checker.py> --email`
 
 If you don't, run the following command in this repo (the same directory as
@@ -80,3 +80,9 @@ $ python checker.py -h
 ## TODO
 
 - [ ] Add computer info to summary (useful if running on multiple computers).
+- [ ] argparse
+- [ ] pep8
+- [ ] tests
+- [ ] travis
+- [ ] maybe pypi?
+- [ ] GIFs are cool right?
