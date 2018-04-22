@@ -6,22 +6,29 @@ Your friendly neighborhood git repository checker. Finds dirty / unpushed
 repositories and tells you.
 
 ```bash
-$ python checker.py
-- Checked at and below: ~
-- Found 23 git repositories.
+$ python checker.py --check-dir ~/repos/
+Finding all git directories at/below "/Users/max/repos"...
+Checking status of all 119 directories...
+100%|████████████████████████| 119/119 [00:01<00:00, 90.15it/s]
+- Checked at and below "/Users/max/repos"
+- Found 119 git repositories.
 
-The following 2 directories have dirty WDs:
-	 - /Users/max/repos/py_git-checker/
-	 - /Users/max/repos/py_beautyplot/
-
-The following 1 directories need to be pushed:
-	 - /Users/max/repos/py_git-checker/
-$
+The following directories (4) have dirty WDs:
+	 - /Users/max/repos/text-metrics/
+	 - /Users/max/repos/cs231n/
+	 - /Users/max/repos/cls-graphics-prj3/
+	 - /Users/max/repos/git-checker/
 ```
 
-This is useful if, like me, most of your code lives and is backed up on GitHub,
-and you want to make sure things are up-to-date and pushed in case of a hard
-drive failure.
+Fuel your OCD to have all of your git repositories clean at the end of a day.
+
+
+## Installation
+
+```bash
+# install in a fresh virtualenv with python3.6+
+$ pip install -r requirements.txt
+```
 
 ## Basic usage
 
@@ -32,10 +39,29 @@ subdirectories, then prints a report for you in the console.
 $ python checker.py
 ```
 
+## Usage
+```
+$ python checker.py --help
+usage: checker.py [-h] [--check-dir CHECK_DIR]
+                  [--report-choice {print,email,both}]
+
+Your friendly neighborhood git repository checker. Finds dirty / unpushed
+repositories and tells you about them.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --check-dir CHECK_DIR
+                        directory to check recursively for git repositories
+                        beneath (default: /Users/max)
+  --report-choice {print,email,both}
+                        Whether to print report to stdout, email a report, or
+                        both (default: print)
+```
+
 ## Email reports
 
 You need to create two additional files before you can run with email reports
-enabled.
+enabled. These live in the root of the repository.
 
 0. `recipient` : one line: the email address of who should receive the report
 0. `sender` : two lines: (1) the username (2) the password of the Gmail account
@@ -43,44 +69,26 @@ enabled.
 
 Then, just run
 ```bash
-$ python checker.py --email
+$ python checker.py --report-choice email
 ```
 
 ## Advanced usage
 
 ### Cron job, emailed reports
 
-_The examples below run the git checker daily at 9pm (0 minutes, 21 hours),
-look at and below your home directory (`~`), and email you the result._
+The line below can be added to your
+[crontabs](https://en.wikipedia.org/wiki/Cron) file to run the git checker daily
+at 9pm (0 minutes, 21 hours), where it will look at and below a directory called
+`~/repos/` and email you the result.
 
-If you already have a crontabs file, add this line to it:
-`0 21 * * * python </Path/to/checker.py> --email`
-
-If you don't, run the following command in this repo (the same directory as
-`checker.py`), and it will set up a `crontab.txt` file in `~/crontab.txt`.
-
-```bash
-$ echo 0 21 '* * *' python `pwd`/checker.py --email > ~/crontab.txt; crontab ~/crontab.txt
 ```
-
-### Check specified directory tree, print _and_ email result
-
-```bash
-$ python checker.py /Path/to/check/below --both
-```
-
-## Help
-
-To get a list of all command line options, just run with `-h` or `--help`.
-
-```bash
-$ python checker.py -h
+0 21 * * * python /Path/to/checker.py --check-dir ~/repos/ --report-choice email
 ```
 
 ## TODO
 
 - [ ] Add computer info to summary (useful if running on multiple computers).
-- [ ] argparse
+- [x] argparse
 - [ ] pep8
 - [ ] tests
 - [ ] travis
