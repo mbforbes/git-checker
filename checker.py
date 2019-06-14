@@ -233,7 +233,7 @@ def git_checker(
     if len(dirty_dirs) > 0 and len(unpushed_branches) > 0:
         report += '\n\n'
     if len(unpushed_branches) > 0:
-        report += 'The following directories+branches ({}) need to be pushed:\n{}'.format(
+        report += 'The following directories (+branches) ({}) need to be pushed:\n{}'.format(
             len(unpushed_branches), reportify(unpushed_branches)
         )
     if len(dirty_dirs) == 0 and len(unpushed_branches) == 0:
@@ -275,7 +275,10 @@ def report_if_unpushed(gd: str, unpushed_branches: List[str]):
         # Find what's important.
         if res != "":
             # Changes unpushed
-            unpushed_branches += [f"{gd}, branch {branch}"]
+            if branch == "master":
+                unpushed_branches += [gd]
+            else:
+                unpushed_branches += [f"{gd}, branch {branch}"]
 
 def checker(
     git_check_dir: str, report_choices: Set[ReportOption], check_home: bool
