@@ -218,8 +218,7 @@ def git_checker(
     dirty_dirs: List[str] = []
     unpushed_dirs: List[str] = []
     for gd in itr:
-        os.chdir(gd)
-        p = sp.Popen(['git', 'status'], stdout=sp.PIPE, universal_newlines=True)
+        p = sp.Popen(['git', 'status'], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
         res, ess = p.communicate()
         # Find what's important.
         lines = res.splitlines()
@@ -229,9 +228,6 @@ def git_checker(
         if check_unpushed(lines):
             # Changes unpushed
             unpushed_dirs += [gd]
-
-    # Get back to original script directory (for emailing).
-    os.chdir(script_dir)
 
     # Make a space in the message body.
     report += '\n'
