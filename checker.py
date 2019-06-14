@@ -191,6 +191,8 @@ def git_checker(
             check_dir,  # directory to look in (default: home)
             '-name',  # search by name
             '.git',
+            '-type',  # specify type
+            'd'
         ],  # the name we want
         stdout=sp.PIPE,  # catch output
         stderr=dn,  # send errors to the void!
