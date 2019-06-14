@@ -47,7 +47,6 @@ DEFAULT_REPORT_CHOICE = 'print'
 
 # how we actually check --- look for output strings! Lol.
 CLEAN_PHRASES = {'working directory clean', 'working tree clean'}
-AHEAD_PHRASES = {'branch is ahead of'}
 
 # dirs to never check
 BLACKLIST_DIRS = {'venv'}
@@ -216,9 +215,8 @@ def git_checker(
         print('Checking status of all {} directories...'.format(len(git_dirs)))
         itr = tqdm(git_dirs)
 
-    # Now run git status in each
+    # Now, check for dirty directories
     dirty_dirs: List[str] = []
-    unpushed_dirs: List[str] = []
     for gd in itr:
         p = sp.Popen(['git', 'status'], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
         res, ess = p.communicate()
@@ -227,9 +225,27 @@ def git_checker(
         if not check_clean(lines):
             # WD dirty
             dirty_dirs += [gd]
-        if check_unpushed(lines):
-            # Changes unpushed
-            unpushed_dirs += [gd]
+
+    # Then, check for unpushed branches with a configured remote. This is done by using
+    # git log remote/branch..branch.
+    unpushed_branches: List[str] = []
+    for gd in itr:
+        # Retrieve all branches with a configured remote
+        branches_with_remote = ['git', 'config', '--get-regexp', '^branch\..*\.remote$']
+        p = sp.Popen(branches_with_remote, stdout=sp.PIPE, universal_newlines = True, cwd=gd)
+        res, ess = p.communicate()
+        branches_with_remotes = [(r.split('.')[1], r.split(' ')[1]) for r in res.splitlines()]
+
+        # Check each branch with a remote which is not pushed
+        for (branch, remote) in branches_with_remotes:
+            # Check which commits are on branch, but not on remote/branch
+            query = f"{remote}/{branch}..{branch}"
+            p = sp.Popen(['git', 'log', query], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
+            res, ess = p.communicate()
+            # Find what's important.
+            if res != "":
+                # Changes unpushed
+                unpushed_branches += [f"{gd}, branch {branch}"]
 
     # Make a space in the message body.
     report += '\n'
@@ -239,17 +255,17 @@ def git_checker(
         report += 'The following directories ({}) have dirty WDs:\n{}'.format(
             len(dirty_dirs), reportify(dirty_dirs)
         )
-    if len(dirty_dirs) > 0 and len(unpushed_dirs) > 0:
+    if len(dirty_dirs) > 0 and len(unpushed_branches) > 0:
         report += '\n\n'
-    if len(unpushed_dirs) > 0:
-        report += 'The following directories ({}) need to be pushed:\n{}'.format(
-            len(unpushed_dirs), reportify(unpushed_dirs)
+    if len(unpushed_branches) > 0:
+        report += 'The following directories+branches ({}) need to be pushed:\n{}'.format(
+            len(unpushed_branches), reportify(unpushed_branches)
         )
-    if len(dirty_dirs) == 0 and len(unpushed_dirs) == 0:
+    if len(dirty_dirs) == 0 and len(unpushed_branches) == 0:
         # Alternate message if everything good (printed only).
         report += 'All git repositories checked were clean.\n'
 
-    return report, len(dirty_dirs), len(unpushed_dirs)
+    return report, len(dirty_dirs), len(unpushed_branches)
 
 
 def checker(
@@ -307,22 +323,6 @@ def check_clean(status: List[str]) -> bool:
         if clean_end in last_line:
             return True
     return False
-
-
-def check_unpushed(status: List[str]) -> bool:
-    """
-    Return whether a status string indicates that a working directory has
-    commits ahead of a remote branch.
-
-    Args:
-        status: Output of `git status`
-    """
-    if len(status) >= 2:
-        for ahead_start in AHEAD_PHRASES:
-            if ahead_start in status[1]:
-                return True
-    return False
-
 
 def email_report(report: str, n_dirty: int, n_unpushed: int) -> None:
     """
