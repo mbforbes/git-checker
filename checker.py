@@ -215,37 +215,12 @@ def git_checker(
         print('Checking status of all {} directories...'.format(len(git_dirs)))
         itr = tqdm(git_dirs)
 
-    # Now, check for dirty directories
+    # Try to find dirty working directories, or unpushed branches.
     dirty_dirs: List[str] = []
-    for gd in itr:
-        p = sp.Popen(['git', 'status'], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
-        res, ess = p.communicate()
-        # Find what's important.
-        lines = res.splitlines()
-        if not check_clean(lines):
-            # WD dirty
-            dirty_dirs += [gd]
-
-    # Then, check for unpushed branches with a configured remote. This is done by using
-    # git log remote/branch..branch.
     unpushed_branches: List[str] = []
     for gd in itr:
-        # Retrieve all branches with a configured remote
-        branches_with_remote = ['git', 'config', '--get-regexp', '^branch\..*\.remote$']
-        p = sp.Popen(branches_with_remote, stdout=sp.PIPE, universal_newlines = True, cwd=gd)
-        res, ess = p.communicate()
-        branches_with_remotes = [(r.split('.')[1], r.split(' ')[1]) for r in res.splitlines()]
-
-        # Check each branch with a remote which is not pushed
-        for (branch, remote) in branches_with_remotes:
-            # Check which commits are on branch, but not on remote/branch
-            query = f"{remote}/{branch}..{branch}"
-            p = sp.Popen(['git', 'log', query], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
-            res, ess = p.communicate()
-            # Find what's important.
-            if res != "":
-                # Changes unpushed
-                unpushed_branches += [f"{gd}, branch {branch}"]
+        report_if_dirty(gd, dirty_dirs)
+        report_if_unpushed(gd, unpushed_branches)
 
     # Make a space in the message body.
     report += '\n'
@@ -267,6 +242,40 @@ def git_checker(
 
     return report, len(dirty_dirs), len(unpushed_branches)
 
+def report_if_dirty(gd: str, dirty_dirs: List[str]):
+    """
+    Check if the git repository at `gd` is dirty. If any dirty repository is found, it
+    is added to `dirty_dirs`.
+    """
+    p = sp.Popen(['git', 'status'], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
+    res, ess = p.communicate()
+    # Find what's important.
+    lines = res.splitlines()
+    if not check_clean(lines):
+        # WD dirty
+        dirty_dirs += [gd]
+
+def report_if_unpushed(gd: str, unpushed_branches: List[str]):
+    """
+    Check if the git repository at `gd` has unpushed branches with a remote. If
+    any unpushed branch is found, it is added to `unpushed_branches`.
+    """
+    # Retrieve all branches with a configured remote
+    branches_with_remote = ['git', 'config', '--get-regexp', '^branch\..*\.remote$']
+    p = sp.Popen(branches_with_remote, stdout=sp.PIPE, universal_newlines = True, cwd=gd)
+    res, ess = p.communicate()
+    branches_with_remotes = [(r.split('.')[1], r.split(' ')[1]) for r in res.splitlines()]
+
+    # Check each branch with a remote which is not pushed
+    for (branch, remote) in branches_with_remotes:
+        # Check which commits are on branch, but not on remote/branch
+        query = f"{remote}/{branch}..{branch}"
+        p = sp.Popen(['git', 'log', query], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
+        res, ess = p.communicate()
+        # Find what's important.
+        if res != "":
+            # Changes unpushed
+            unpushed_branches += [f"{gd}, branch {branch}"]
 
 def checker(
     git_check_dir: str, report_choices: Set[ReportOption], check_home: bool
