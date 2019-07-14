@@ -58,6 +58,7 @@ HOME_NOLOOK = [
     'GoogleDrive',  # stuff here be backed up
     'Library',  # just scary settings and things
     'repos',  # should probably make sure these are backed up... oh wait, that's this!
+    'Tendershoot',  # Hypnospace Outlaw. (Really should have per-user config...)
 ]
 # mapping from things we want to look in to exceptions for what can be there
 HOME_LOOK: Dict[str, Set[str]] = {
@@ -191,7 +192,7 @@ def git_checker(
             '-name',  # search by name
             '.git',
             '-type',  # specify type
-            'd'
+            'd',
         ],  # the name we want
         stdout=sp.PIPE,  # catch output
         stderr=dn,  # send errors to the void!
@@ -242,6 +243,7 @@ def git_checker(
 
     return report, len(dirty_dirs), len(unpushed_branches)
 
+
 def report_if_dirty(gd: str, dirty_dirs: List[str]):
     """
     Check if the git repository at `gd` is dirty. If any dirty repository is found, it
@@ -255,6 +257,7 @@ def report_if_dirty(gd: str, dirty_dirs: List[str]):
         # WD dirty
         dirty_dirs += [gd]
 
+
 def report_if_unpushed(gd: str, unpushed_branches: List[str]):
     """
     Check if the git repository at `gd` has unpushed branches with a remote. If
@@ -262,15 +265,19 @@ def report_if_unpushed(gd: str, unpushed_branches: List[str]):
     """
     # Retrieve all branches with a configured remote
     branches_with_remote = ['git', 'config', '--get-regexp', '^branch\..*\.remote$']
-    p = sp.Popen(branches_with_remote, stdout=sp.PIPE, universal_newlines = True, cwd=gd)
+    p = sp.Popen(branches_with_remote, stdout=sp.PIPE, universal_newlines=True, cwd=gd)
     res, ess = p.communicate()
-    branches_with_remotes = [(r.split('.')[1], r.split(' ')[1]) for r in res.splitlines()]
+    branches_with_remotes = [
+        (r.split('.')[1], r.split(' ')[1]) for r in res.splitlines()
+    ]
 
     # Check each branch with a remote which is not pushed
     for (branch, remote) in branches_with_remotes:
         # Check which commits are on branch, but not on remote/branch
         query = f"{remote}/{branch}..{branch}"
-        p = sp.Popen(['git', 'log', query], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
+        p = sp.Popen(
+            ['git', 'log', query], stdout=sp.PIPE, universal_newlines=True, cwd=gd
+        )
         res, ess = p.communicate()
         # Find what's important.
         if res != "":
@@ -279,6 +286,7 @@ def report_if_unpushed(gd: str, unpushed_branches: List[str]):
                 unpushed_branches += [gd]
             else:
                 unpushed_branches += [f"{gd}, branch {branch}"]
+
 
 def checker(
     git_check_dir: str, report_choices: Set[ReportOption], check_home: bool
@@ -335,6 +343,7 @@ def check_clean(status: List[str]) -> bool:
         if clean_end in last_line:
             return True
     return False
+
 
 def email_report(report: str, n_dirty: int, n_unpushed: int) -> None:
     """
