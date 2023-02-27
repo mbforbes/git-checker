@@ -36,39 +36,39 @@ class ReportOption(Enum):
 
 # map from externally-specified actions to set of things to do internally
 REPORT_TRANSLATION = {
-    'print': {ReportOption.PRINT},
-    'email': {ReportOption.EMAIL},
-    'both': {ReportOption.PRINT, ReportOption.EMAIL},
+    "print": {ReportOption.PRINT},
+    "email": {ReportOption.EMAIL},
+    "both": {ReportOption.PRINT, ReportOption.EMAIL},
 }
 
 # cmd line defaults
-DEFAULT_CHECK_DIR = '~'
-DEFAULT_REPORT_CHOICE = 'print'
+DEFAULT_CHECK_DIR = "~"
+DEFAULT_REPORT_CHOICE = "print"
 
 # how we actually check --- look for output strings! Lol.
-CLEAN_PHRASES = {'working directory clean', 'working tree clean'}
+CLEAN_PHRASES = {"working directory clean", "working tree clean"}
 
 # dirs to never check
-BLACKLIST_DIRS = {'venv'}
+IGNORE_DIRS = {"venv", ".cargo", ".pyenv"}
 
 # checking for other stuff in your home directory
-HOME_PATTERN = '~/*'
+HOME_PATTERN = "~/*"
 HOME_NOLOOK = [
-    'Applications',  # clean this up on your own time some time
-    'GoogleDrive',  # stuff here be backed up
-    'Library',  # just scary settings and things
-    'repos',  # should probably make sure these are backed up... oh wait, that's this!
-    'Tendershoot',  # Hypnospace Outlaw. (Really should have per-user config...)
+    "Applications",  # clean this up on your own time some time
+    "GoogleDrive",  # stuff here be backed up
+    "Library",  # just scary settings and things
+    "repos",  # should probably make sure these are backed up... oh wait, that's this!
+    "Tendershoot",  # Hypnospace Outlaw. (Really should have per-user config...)
 ]
 # mapping from things we want to look in to exceptions for what can be there
 HOME_LOOK: Dict[str, Set[str]] = {
-    'Desktop': set(),
-    'Documents': set(),
-    'Downloads': set(),
-    'Movies': set(),
-    'Music': {'Audio Music Apps', 'iTunes'},
-    'Pictures': {'Photo Booth Library', 'Photos Library.photoslibrary'},
-    'Public': set(),
+    "Desktop": set(),
+    "Documents": set(),
+    "Downloads": set(),
+    "Movies": set(),
+    "Music": {"Audio Music Apps", "iTunes"},
+    "Pictures": {"Photo Booth Library", "Photos Library.photoslibrary"},
+    "Public": set(),
 }
 
 # Thanks to Brant Faircloth (https://gist.github.com/brantfaircloth/1443543)
@@ -93,7 +93,7 @@ def ensure_dir(path: str) -> str:
     Raises ArgumentTypeError if the validation fails.
     """
     if not os.path.isdir(full_path(path)):
-        raise argparse.ArgumentTypeError('{0} is not a directory'.format(path))
+        raise argparse.ArgumentTypeError("{0} is not a directory".format(path))
     return path
 
 
@@ -118,7 +118,7 @@ def home_checker(prompt: bool = True) -> str:
 
     # for ones where we want to look, make sure they're empty
     for dirname, allowed in HOME_LOOK.items():
-        contents = glob.glob(full_path(os.path.join('~', dirname, '*')))
+        contents = glob.glob(full_path(os.path.join("~", dirname, "*")))
         for c in contents:
             short_c = os.path.basename(c)
             if short_c not in allowed:
@@ -129,21 +129,21 @@ def home_checker(prompt: bool = True) -> str:
 
     # prepend home checker report summary
     clean = len(report) == 0
-    report.insert(0, '[home-checker]')
+    report.insert(0, "[home-checker]")
     if clean:
-        report.append('Home checker succeeded. Home directory clean!')
+        report.append("Home checker succeeded. Home directory clean!")
     else:
-        report.insert(1, 'Home checker found {} problems:'.format(len(report)))
+        report.insert(1, "Home checker found {} problems:".format(len(report)))
 
     # maybe auto-cleanup
     if not clean and prompt:
-        print('\n'.join(report))
+        print("\n".join(report))
         report = []
-        print('I can automatically remove the following files:')
+        print("I can automatically remove the following files:")
         for c in cleanup_list:
-            print(' - {}'.format(c))
-        choice = input('Would you like me to do this? (y/n) ')
-        if choice.lower() == 'y':
+            print(" - {}".format(c))
+        choice = input("Would you like me to do this? (y/n) ")
+        if choice.lower() == "y":
             for c in cleanup_list:
                 if os.path.isfile(c):
                     report.append('- Removing file "{}"'.format(c))
@@ -158,10 +158,10 @@ def home_checker(prompt: bool = True) -> str:
                         )
                     )
             report.append(
-                'Home auto-cleaner finished. Fix any warnings and re-run to confirm.'
+                "Home auto-cleaner finished. Fix any warnings and re-run to confirm."
             )
 
-    return '\n'.join(report)
+    return "\n".join(report)
 
 
 def git_checker(
@@ -176,7 +176,7 @@ def git_checker(
     report = '- Checked at and below "{}"\n'.format(check_dir)
 
     # Get the void.
-    dn = open(os.devnull, 'w')
+    dn = open(os.devnull, "w")
 
     # Check.
     if ReportOption.PRINT in report_choices:
@@ -187,12 +187,12 @@ def git_checker(
         )
     p = sp.Popen(
         [
-            'find',  # command
+            "find",  # command
             check_dir,  # directory to look in (default: home)
-            '-name',  # search by name
-            '.git',
-            '-type',  # specify type
-            'd',
+            "-name",  # search by name
+            ".git",
+            "-type",  # specify type
+            "d",
         ],  # the name we want
         stdout=sp.PIPE,  # catch output
         stderr=dn,  # send errors to the void!
@@ -204,16 +204,16 @@ def git_checker(
     dn.close()
 
     # Filter out crap and peel off .git endings.
-    all_git_dirs = [r.split('.git')[0] for r in res.splitlines() if r.endswith('git')]
+    all_git_dirs = [r.split(".git")[0] for r in res.splitlines() if r.endswith("git")]
     git_dirs = [d for d in all_git_dirs if not exclude(d)]
-    report += '- Found {} git {}.\n'.format(
-        len(git_dirs), ('repository' if len(git_dirs) == 1 else 'repositories')
+    report += "- Found {} git {}.\n".format(
+        len(git_dirs), ("repository" if len(git_dirs) == 1 else "repositories")
     )
 
     # Use progress bar only if printing
     itr = git_dirs
     if ReportOption.PRINT in report_choices:
-        print('Checking status of all {} directories...'.format(len(git_dirs)))
+        print("Checking status of all {} directories...".format(len(git_dirs)))
         itr = tqdm(git_dirs)
 
     # Try to find dirty working directories, or unpushed branches.
@@ -224,22 +224,24 @@ def git_checker(
         report_if_unpushed(gd, unpushed_branches)
 
     # Make a space in the message body.
-    report += '\n'
+    report += "\n"
 
     # Append any dirty directories.
     if len(dirty_dirs) > 0:
-        report += 'The following directories ({}) have dirty WDs:\n{}'.format(
+        report += "The following directories ({}) have dirty WDs:\n{}".format(
             len(dirty_dirs), reportify(dirty_dirs)
         )
     if len(dirty_dirs) > 0 and len(unpushed_branches) > 0:
-        report += '\n\n'
+        report += "\n\n"
     if len(unpushed_branches) > 0:
-        report += 'The following directories (+branches) ({}) need to be pushed:\n{}'.format(
-            len(unpushed_branches), reportify(unpushed_branches)
+        report += (
+            "The following directories (+branches) ({}) need to be pushed:\n{}".format(
+                len(unpushed_branches), reportify(unpushed_branches)
+            )
         )
     if len(dirty_dirs) == 0 and len(unpushed_branches) == 0:
         # Alternate message if everything good (printed only).
-        report += 'All git repositories checked were clean.\n'
+        report += "All git repositories checked were clean.\n"
 
     return report, len(dirty_dirs), len(unpushed_branches)
 
@@ -249,7 +251,7 @@ def report_if_dirty(gd: str, dirty_dirs: List[str]):
     Check if the git repository at `gd` is dirty. If any dirty repository is found, it
     is added to `dirty_dirs`.
     """
-    p = sp.Popen(['git', 'status'], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
+    p = sp.Popen(["git", "status"], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
     res, ess = p.communicate()
     # Find what's important.
     lines = res.splitlines()
@@ -264,11 +266,11 @@ def report_if_unpushed(gd: str, unpushed_branches: List[str]):
     any unpushed branch is found, it is added to `unpushed_branches`.
     """
     # Retrieve all branches with a configured remote
-    branches_with_remote = ['git', 'config', '--get-regexp', '^branch\..*\.remote$']
+    branches_with_remote = ["git", "config", "--get-regexp", "^branch\..*\.remote$"]
     p = sp.Popen(branches_with_remote, stdout=sp.PIPE, universal_newlines=True, cwd=gd)
     res, ess = p.communicate()
     branches_with_remotes = [
-        (r.split('.')[1], r.split(' ')[1]) for r in res.splitlines()
+        (r.split(".")[1], r.split(" ")[1]) for r in res.splitlines()
     ]
 
     # Check each branch with a remote which is not pushed
@@ -276,7 +278,7 @@ def report_if_unpushed(gd: str, unpushed_branches: List[str]):
         # Check which commits are on branch, but not on remote/branch
         query = f"{remote}/{branch}..{branch}"
         p = sp.Popen(
-            ['git', 'log', query], stdout=sp.PIPE, universal_newlines=True, cwd=gd
+            ["git", "log", query], stdout=sp.PIPE, universal_newlines=True, cwd=gd
         )
         res, ess = p.communicate()
         # Find what's important.
@@ -302,7 +304,7 @@ def checker(
         - check_home: Whether to crawl home directory and check for files.
     """
     git_report, n_dirty, n_unpushed = git_checker(git_check_dir, report_choices)
-    home_report = '\n' + home_checker() if check_home else ''
+    home_report = "\n" + home_checker() if check_home else ""
 
     report = git_report + home_report
 
@@ -316,19 +318,19 @@ def checker(
         email_report(report, n_dirty, n_unpushed)
 
 
-def exclude(path: str, blacklist: Set[str] = BLACKLIST_DIRS) -> bool:
-    """Returns whether path should be excluded because any part of it apepars in
-    the blacklist.
+def exclude(path: str, ignore_list: Set[str] = IGNORE_DIRS) -> bool:
+    """Returns whether path should be excluded because any part of it appears in
+    the ignore_list.
     """
     for piece in os.path.normpath(path).split(os.sep):
-        if piece in blacklist:
+        if piece in ignore_list:
             return True
     return False
 
 
 def reportify(paths: List[str]) -> str:
     """Makes a nice string for a list of paths."""
-    return '\n'.join(['\t - {}'.format(p) for p in paths]) + '\n'
+    return "\n".join(["\t - {}".format(p) for p in paths]) + "\n"
 
 
 def check_clean(status: List[str]) -> bool:
@@ -356,26 +358,26 @@ def email_report(report: str, n_dirty: int, n_unpushed: int) -> None:
         n_unpushed (int) The number of unpushed directories
     """
     # Who to send report to.
-    with open('recipient') as recipient:
+    with open("recipient") as recipient:
         user_email = recipient.read().strip()
 
     # Account from which to send the email.
-    with open('sender') as sender:
-        sender_uname, sender_psswd = sender.read().strip().split('\n')
+    with open("sender") as sender:
+        sender_uname, sender_psswd = sender.read().strip().split("\n")
 
     # Convert format.
     msg = MIMEText(report)
 
     # Set email fields.
     receiver = user_email
-    msg['Subject'] = 'git-checker report: {} dirty, {} unpushed'.format(
+    msg["Subject"] = "git-checker report: {} dirty, {} unpushed".format(
         n_dirty, n_unpushed
     )
-    msg['From'] = sender_uname
-    msg['To'] = receiver
+    msg["From"] = sender_uname
+    msg["To"] = receiver
 
     # Login and send email.
-    conn = SMTP('smtp.gmail.com')
+    conn = SMTP("smtp.gmail.com")
     conn.login(sender_uname, sender_psswd)
     try:
         conn.sendmail(sender_uname, receiver, msg.as_string())
@@ -386,34 +388,34 @@ def email_report(report: str, n_dirty: int, n_unpushed: int) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            'Your friendly neighborhood git repository checker. '
-            'Finds dirty / unpushed repositories and tells you about them.'
+            "Your friendly neighborhood git repository checker. "
+            "Finds dirty / unpushed repositories and tells you about them."
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        '--check-dir',
+        "--check-dir",
         action=FullPath,
         type=ensure_dir,
         default=full_path(DEFAULT_CHECK_DIR),
-        help='directory to check recursively for git repositories beneath',
+        help="directory to check recursively for git repositories beneath",
     )
     parser.add_argument(
-        '--report-choice',
+        "--report-choice",
         type=str,
         default=DEFAULT_REPORT_CHOICE,
         choices=REPORT_TRANSLATION.keys(),
-        help='Whether to print report to stdout, email a report, or both',
+        help="Whether to print report to stdout, email a report, or both",
     )
     parser.add_argument(
-        '--check-home',
-        action='store_true',
-        help='run experimental home directory cleanliness checker (config in code only)',
+        "--check-home",
+        action="store_true",
+        help="run experimental home directory cleanliness checker (config in code only)",
     )
     args = parser.parse_args()
 
     checker(args.check_dir, REPORT_TRANSLATION[args.report_choice], args.check_home)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
