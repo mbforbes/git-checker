@@ -1,0 +1,29 @@
+{
+   "meta": {
+      "comment": "This is the default configuration file for the git-checker tool. You should probably customize it to fit your needs. `home_nolook` contains folders the home-checker will ignore entirely (not looking inside). `home_look` contains a map from (folder within home) to (contents inside to ignore). Use these options for files and folders you're OK with existing. For me, the top-level 'nolook' folders are all backed up elsewhere (Google Drive, git repos), or I'm fine losing (cache) or redownloading (Applications). And the ignored 'look' contents are files and folders automatically placed by the operating system and other programs."
+   },
+   "config": {
+      "home_nolook": [
+         "Applications",
+         "cache",
+         "GoogleDrive",
+         "Google Drive",
+         "Library",
+         "repos"
+      ],
+      "home_look": {
+         "Desktop": [],
+         "Documents": ["Blackmagic Design", "Larian Studios"],
+         "Downloads": [],
+         "Movies": ["CacheClip", "TV"],
+         "Music": ["Audio Music Apps", "Music"],
+         "Pictures": [
+            "Linked Files",
+            "Photo Booth Library",
+            "Photos Library.photoslibrary"
+         ],
+         "Public": ["Drop Box"]
+      },
+      "verbose": true
+   }
+}

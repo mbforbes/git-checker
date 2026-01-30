@@ -22,7 +22,6 @@ The following directories (4) have dirty WDs:
 
 Fuel your OCD to have all of your git repositories clean at the end of a day.
 
-
 ## Installation
 
 ```bash
@@ -40,6 +39,7 @@ $ python checker.py
 ```
 
 ## Usage
+
 ```
 $ python checker.py --help
 usage: checker.py [-h] [--check-dir CHECK_DIR]
@@ -64,10 +64,11 @@ You need to create two additional files before you can run with email reports
 enabled. These live in the root of the repository.
 
 0. `recipient` : one line: the email address of who should receive the report
-0. `sender` : two lines: (1) the username (2) the password of the Gmail account
+1. `sender` : two lines: (1) the username (2) the password of the Gmail account
    for sending the report
 
 Then, just run
+
 ```bash
 $ python checker.py --report-choice email
 ```
@@ -87,10 +88,16 @@ at 9pm (0 minutes, 21 hours), where it will look at and below a directory called
 
 ## TODO
 
-- [ ] Add computer info to summary (useful if running on multiple computers).
-- [x] argparse
-- [ ] pep8
-- [ ] tests
-- [ ] travis
-- [ ] maybe pypi?
-- [ ] GIFs are cool right?
+-  [ ] Add computer info to summary (useful if running on multiple computers).
+-  [x] argparse
+-  [ ] tests?
+-  [ ] maybe pypi?
+-  [ ] GIFs are cool right?
+
+### speedup
+
+-  home dir (`~/`): 46s
+-  repos dir (`~/repos`): 11s
+-  pruning (`-prune`): 10s
+-  switching to `fd`: 0.136s <-- yep wow, let's use that
+   `fd -t d '^\.git$' -H ~/repos/`

@@ -1,2 +1,2 @@
-mypy
-tqdm
+mbforbes_python_utils
+pydantic
