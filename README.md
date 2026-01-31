@@ -100,11 +100,19 @@ at 9pm (0 minutes, 21 hours), where it will look at and below a directory called
 0 21 * * * python /Path/to/checker.py --check-dir ~/repos/ --report-choice email
 ```
 
+## Tests
+
+Warning: these tests are AI-written. Better than nothing (right? right???).
+
+```sh
+python tests.py
+```
+
 ## TODO
 
 -  [ ] Flag to add computer info to summary (useful if running on multiple computers)
 -  [x] argparse
--  [ ] tests?
+-  [x] tests
 -  [ ] maybe pypi?
 -  [ ] fall back to `find` and print nice message if `fd` not available
 

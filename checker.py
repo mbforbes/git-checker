@@ -239,7 +239,7 @@ def status_no_commits(status: list[str]) -> bool:
     Args:
         status: Output of `git status`
     """
-    return status[2] == "No commits yet"
+    return len(status) >= 3 and status[2] == "No commits yet"
 
 
 def check_git_dir(git_dir: str) -> GitStatus:
