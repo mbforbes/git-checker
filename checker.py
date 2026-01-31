@@ -222,7 +222,11 @@ def status_clean(status: list[str]) -> bool:
         status: Output of `git status`
     """
     last_line = status[-1]
-    for clean_end in {"working directory clean", "working tree clean"}:
+    for clean_end in {
+        "working directory clean",
+        "working tree clean",
+        "nothing to commit",
+    }:
         if clean_end in last_line:
             return True
     return False
@@ -242,9 +246,7 @@ def check_git_dir(git_dir: str) -> GitStatus:
     """Does GitChecking on git_dir"""
     dirty, no_commits = is_dirty_fresh(git_dir)
     unpushed_branches = [] if no_commits else get_unpushed_branches(git_dir)
-    return GitStatus(
-        dirty=(dirty and not no_commits), unpushed_branches=unpushed_branches
-    )
+    return GitStatus(dirty=dirty, unpushed_branches=unpushed_branches)
 
 
 def git_checker(
