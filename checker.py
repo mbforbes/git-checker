@@ -13,6 +13,7 @@ from enum import Enum, auto
 import json
 import glob
 import os
+import sys
 
 from smtplib import SMTP_SSL as SMTP
 import subprocess as sp
@@ -94,10 +95,12 @@ def ensure_dir(path: str) -> str:
     return path
 
 
-def home_checker(config: Config) -> str:
-    """NOTE: Doing this all w/ globs / regex patterns probably better."""
+def home_checker(config: Config) -> tuple[str, int, int]:
+    """The home part of the checking. Returns (home_report, n_top, n_below)."""
     report: list[str] = []
     cleanup_list: list[str] = []
+    n_top = 0
+    n_below = 0
 
     # check top level
     tops = glob.glob(full_path("~/*"))
@@ -107,6 +110,7 @@ def home_checker(config: Config) -> str:
         if short_top not in ok_tops:
             report.append('- ~/ has unwanted top-level contents "{}"'.format(top))
             cleanup_list.append(top)
+            n_top += 1
 
     # for ones where we want to look, make sure they're empty
     for dirname, allowed in config.home_look.items():
@@ -118,6 +122,7 @@ def home_checker(config: Config) -> str:
                     '- ~/{} has unwanted contents "{}"'.format(dirname, short_c)
                 )
                 cleanup_list.append(c)
+                n_below += 1
 
     # prepend home checker report summary
     clean = len(report) == 0
@@ -153,7 +158,7 @@ def home_checker(config: Config) -> str:
     #             "Home auto-cleaner finished. Fix any warnings and re-run to confirm."
     #         )
 
-    return "\n".join(report)
+    return "\n".join(report), n_top, n_below
 
 
 def is_dirty_fresh(gd: str) -> tuple[bool, bool]:
@@ -245,7 +250,7 @@ def check_git_dir(git_dir: str) -> GitStatus:
 def git_checker(
     check_dir: str, report_choices: set[ReportOption]
 ) -> tuple[str, int, int]:
-    """The git part of the checking."""
+    """The git part of the checking. Returns (git_report, n_dirty, n_unpushed)."""
     # Save original path (gets messed up and unreachable after changing
     # directories a bunch and reading files, I guess...)
     # NOTE: I guess not?? Never used.
@@ -345,17 +350,28 @@ def checker(
     check_git: bool,
     check_home: bool,
     config: Config,
-) -> None:
-    """Top-level git & home checker.
-    - git:  Check git directories for uncommited files and unpushed branches.
-    - home: Check home @ subdirectories for unwanted files.
+) -> int:
+    """Top-level git & home checker. Maybe prints/emails report, returns status code.
 
-    Reports options: stdout, email.
+    Configure with:
+    - `report_choices`: email, print to stdout, both, neither.
+    - `check_git`: Check git directories for uncommited files and unpushed branches
+        under `git_check_dir`.
+    - `check_home`: Check home & subdirectories for unwanted files. Configured with
+      `config`.
+
+    Returns status bit flag:
+        - 0 = clean
+        - 4 = dirty git
+        - 8 = unwanted files
+        - 12 = both
     """
     report = ""
 
+    git_flag = 0
     if check_git:
         git_report, n_dirty, n_unpushed = git_checker(git_check_dir, report_choices)
+        git_flag = 4 if n_dirty > 0 or n_unpushed > 0 else 0
 
         # NOTE: Currently the email report is git-only. May be useful to extend based on
         # home_checker returning a value also.
@@ -366,12 +382,16 @@ def checker(
 
         report += git_report
 
+    home_flag = 0
     if check_home:
-        home_report = "\n" + home_checker(config) if check_home else ""
-        report += home_report
+        home_report, n_top, n_below = home_checker(config)
+        home_flag = 8 if n_top > 0 or n_below > 0 else 0
+        report += "\n" + home_report
 
     if ReportOption.PRINT in report_choices:
         print(report)
+
+    return git_flag | home_flag
 
 
 def reportify(paths: list[str]) -> str:
@@ -417,7 +437,8 @@ def email_report(report: str, n_dirty: int, n_unpushed: int) -> None:
         conn.close()
 
 
-def main() -> None:
+def main() -> int:
+    """Returns status bit flag: 0 = clean, 4 = dirty git, 8 = extra files, 12 = both"""
     parser = argparse.ArgumentParser(
         description=(
             "Your friendly neighborhood git repository & home directory checker. "
@@ -479,7 +500,7 @@ def main() -> None:
     check_git = not args.no_check_git
     check_home = not args.no_check_home
 
-    checker(
+    return checker(
         args.git_check_dir,
         REPORT_TRANSLATION[args.report_choice],
         check_git,
@@ -489,4 +510,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

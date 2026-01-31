@@ -5,27 +5,38 @@
 Your friendly neighborhood git repository checker. Finds dirty / unpushed
 repositories and tells you.
 
-```bash
-$ python checker.py --check-dir ~/repos/
-Finding all git directories at/below "/Users/max/repos"...
-Checking status of all 119 directories...
-100%|████████████████████████| 119/119 [00:01<00:00, 90.15it/s]
-- Checked at and below "/Users/max/repos"
-- Found 119 git repositories.
+Also checks your home directory for unwanted files (configurable).
 
-The following directories (4) have dirty WDs:
-	 - /Users/max/repos/text-metrics/
-	 - /Users/max/repos/cs231n/
-	 - /Users/max/repos/cls-graphics-prj3/
-	 - /Users/max/repos/git-checker/
+```bash
+$ python checker.py
+
+Arguments:
+git_check_dir: /Users/max [str]
+report_choice: print [str]
+no_check_git : False [bool]
+no_check_home: False [bool]
+config       : /Users/max/repos/git-checker/default.git-checker-config.json [str]
+print_config : False [bool]
+
+[git-checker]
+Finding all git directories at/below "/Users/max"...
+Checking status of all 80 directories...
+- Checked at and below "/Users/max"
+- Found 80 git repositories.
+
+The following directories (1) have dirty WDs:
+	 - /Users/max/repos/website-3/
+
+[home-checker]
+Home checker passed. Home directory clean!
 ```
 
-Fuel your OCD to have all of your git repositories clean at the end of a day.
+Fuel your OCD to have all of your git repositories clean at the end of a day, and files you care about living in backed-up directories.
 
 ## Installation
 
 ```bash
-# install in a fresh virtualenv with python3.6+
+# python python3.6+, or use uv etc.
 $ pip install -r requirements.txt
 ```
 
@@ -40,22 +51,25 @@ $ python checker.py
 
 ## Usage
 
-```
+```txt
 $ python checker.py --help
-usage: checker.py [-h] [--check-dir CHECK_DIR]
-                  [--report-choice {print,email,both}]
+usage: checker.py [-h] [--git-check-dir GIT_CHECK_DIR] [--report-choice {print,email,both}] [--no-check-git]
+                  [--no-check-home] [--config CONFIG] [--print-config]
 
-Your friendly neighborhood git repository checker. Finds dirty / unpushed
-repositories and tells you about them.
+Your friendly neighborhood git repository & home directory checker. (1) Finds dirty / unpushed repositories. (2)
+Finds unwanted (or un-backed-up) files in your home directory.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  --check-dir CHECK_DIR
-                        directory to check recursively for git repositories
-                        beneath (default: /Users/max)
+  --git-check-dir GIT_CHECK_DIR
+                        Directory beneath which to check recursively for git repositories (default: /Users/max)
   --report-choice {print,email,both}
-                        Whether to print report to stdout, email a report, or
-                        both (default: print)
+                        Whether to print report to stdout, email a report, or both (default: print)
+  --no-check-git        Don't run git repository check (default: False)
+  --no-check-home       Don't run home directory cleanliness checker (default: False)
+  --config CONFIG       path to config file (currently home checker config only) (default: /Users/max/repos/git-
+                        checker/default.git-checker-config.json)
+  --print-config        Print to stdout contents of config file used. (default: False)
 ```
 
 ## Email reports
@@ -88,13 +102,16 @@ at 9pm (0 minutes, 21 hours), where it will look at and below a directory called
 
 ## TODO
 
--  [ ] Add computer info to summary (useful if running on multiple computers).
+-  [ ] Flag to add computer info to summary (useful if running on multiple computers)
 -  [x] argparse
 -  [ ] tests?
 -  [ ] maybe pypi?
--  [ ] GIFs are cool right?
+-  [ ] fall back to `find` and print nice message if `fd` not available
 
-### speedup
+
+## Notes
+
+`fd` speedup vs `find`:
 
 -  home dir (`~/`): 46s
 -  repos dir (`~/repos`): 11s
