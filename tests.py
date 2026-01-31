@@ -238,6 +238,30 @@ class TestGitChecker(unittest.TestCase):
             len(status.unpushed_branches), 1, "Should have unpushed branch"
         )
 
+    def test_fail_on_short_status_config(self):
+        """
+        Scenario: User has `git config status.short true` set.
+        This causes `git status` (clean) to output NOTHING.
+        Current implementation: Crashes in status_clean (IndexError).
+        Robust implementation (--porcelain): Handles empty output correctly (Clean).
+        """
+        path = self._create_repo("short_status")
+        # Set config to output short format
+        self._run_git(path, ["config", "status.short", "true"])
+
+        # Commit a file to make it a valid clean repo
+        with open(os.path.join(path, "f1"), "w") as f:
+            f.write("1")
+        self._run_git(path, ["add", "f1"])
+        self._run_git(path, ["commit", "-m", "c1"])
+
+        # This currently crashes!
+        status = check_git_dir(path)
+        self.assertFalse(
+            status.dirty,
+            "Should handle 'status.short=true' on clean repo without crashing",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

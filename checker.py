@@ -165,7 +165,9 @@ def is_dirty_fresh(gd: str) -> tuple[bool, bool]:
     """
     returns whether git directory `gd` (is dirty, has no commits)
     """
-    p = sp.Popen(["git", "status"], stdout=sp.PIPE, universal_newlines=True, cwd=gd)
+    p = sp.Popen(
+        ["git", "status", "--long"], stdout=sp.PIPE, universal_newlines=True, cwd=gd
+    )
     res, _ = p.communicate()
     lines = res.splitlines()
     return not status_clean(lines), status_no_commits(lines)
